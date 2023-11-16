@@ -1,1 +1,5 @@
 rr
+remote_reality
+*debug*
+*.crt
+*.key

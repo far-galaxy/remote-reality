@@ -1,4 +1,4 @@
-module rr
+module remote_reality
 
 go 1.21.4
 

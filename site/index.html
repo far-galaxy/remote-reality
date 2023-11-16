@@ -1,86 +1,27 @@
 <html>
+
+  <head>
+    <script src="/script.js"></script>
+  </head>
   <style>
-    #vr{
-      display: flex;
-      flex-direction: row;
-    }
-    img{
-      margin-right: -60px;
-    }
+  #vr {
+    display: flex;
+    flex-direction: row;
+  }
+  img {
+    margin-right: -60px;
+  }
+  body {
+    background-color: black;
+  }
   </style>
+
   <body>
     <div id="vr">
-    <img src="/a">
-    <img src="/a">
-  </div>
-    <div id="debug">No Update</div>
+      <img src="/video">
+      <img src="/video">
+    </div>
+    <div id="debug">This is for debug</div>
   </body>
-  <script>
-    if (
-    DeviceMotionEvent &&
-    typeof DeviceMotionEvent.requestPermission === "function"
-  ) {
-    DeviceMotionEvent.requestPermission();
-  }
-        // Функция для обработки данных о повороте устройства и отправки POST-запроса
-function sendData(deviceData) {
-  // Отправка POST-запроса
-  fetch('/orient', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(deviceData)
-  })
-  .then(response => {
-    if (response.status === 210) {
-      try {
-        navigator.vibrate(200);
-      } catch (err) {
-        document.querySelector("#debug").innerHTML = err.message
-      }
-    } else if (!response.ok) {
-      throw new Error('Ошибка при отправке POST-запроса');
-    }
-    return response.json();
-  })
-  .then(data => {
-    console.log('POST-запрос успешно отправлен. Ответ сервера:', data);
-  })
-  .catch(error => {
-    console.error('Ошибка при отправке POST-запроса:', error.message);
-  });
-}
-var start = Date.now();
-// Обработка события deviceorientation
-function handleDeviceOrientation(event) {
-  //now = Date.now();
-  //if (now - start > 1000) {
-    //start = now
-  document.querySelector("#debug").innerHTML = event.beta;
-  // Получение данных о повороте устройства
-  var deviceData = {
-    alpha: event.alpha,
-    beta: event.beta,
-    gamma: event.gamma
-  };
-  //document.querySelector("img").style["margin-right"] = (event.gamma*3)+"px"
-  // Отправка данных на сервер
-  sendData(deviceData);
-//}
-}
-document.querySelector("#debug")
-// Установка обработчика события deviceorientation
-try {
-window.addEventListener('deviceorientation', handleDeviceOrientation);
-}
-catch (err) {
-  document.querySelector("#debug").innerHTML = err.message
-}
 
-// Установка интервала для регулярной отправки данных (каждые 100 мс)
-setInterval(function() {
-  // Если требуется выполнить дополнительные действия в этом интервале, можно добавить соответствующий код здесь
-}, 1000);
-        </script>
 </html>
