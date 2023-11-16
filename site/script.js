@@ -33,7 +33,7 @@ function sendData(deviceData) {
 // Передача ориентации устройства
 function handleDeviceOrientation(event) {
     now = Date.now();
-    if (now - start > 1000) {
+    if (now - start > timeout) {
         start = now
         var deviceData = {
             alpha: event.alpha,
