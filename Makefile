@@ -27,7 +27,7 @@ run: build
 	@./remote_reality ${OPTIONS}
 
 run-remote:
-	@ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_REPO} && sudo ./remote_reality'
+	@ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_REPO} && sudo ./remote_reality ${OPTIONS}'
 
 clean:
 	@rm remote_reality
