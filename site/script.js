@@ -53,3 +53,7 @@ try {
 } catch (err) {
     document.querySelector("#debug").innerHTML = err.message
 }
+
+function stop() {
+    fetch('/stop', {method: 'GET',})
+}

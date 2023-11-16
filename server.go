@@ -34,6 +34,7 @@ func InitServer(addr string, tls bool, li chan *bytes.Buffer) {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/", HomePage)
+	router.HandleFunc("/stop", Stop)
 	router.HandleFunc("/script.js", HomePage)
 	router.HandleFunc("/orient", Orientation)
 	router.HandleFunc("/video", func(w http.ResponseWriter, r *http.Request) {
@@ -143,4 +144,9 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write(file)
 
+}
+
+func Stop(w http.ResponseWriter, r *http.Request) {
+	log.Println("stop from", r.RemoteAddr)
+	os.Exit(0)
 }
