@@ -64,7 +64,7 @@ func InitServer(addr string, tls bool, li chan *bytes.Buffer) {
 	})
 	http.Handle("/", router)
 	if tls {
-		log.Fatal(http.ListenAndServeTLS(":443", "server.crt", "server.key", nil))
+		log.Fatal(http.ListenAndServeTLS(":443", "localhost.crt", "localhost.key", nil))
 	} else {
 		log.Fatal(http.ListenAndServe(addr, nil))
 	}

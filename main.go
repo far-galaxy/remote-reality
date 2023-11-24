@@ -106,7 +106,8 @@ func ServoHeadInit() {
 			isRaspberry = false
 			fmt.Println("It is hot Raspberry, Servo disabled")
 		} else {
-			log.Fatal(err)
+			isRaspberry = false
+			fmt.Println(err)
 		}
 	}
 

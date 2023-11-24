@@ -24,7 +24,7 @@ deploy: build-remote
 	@echo "${GREEN}Deploy succesful!${NC}"
 
 run: build
-	@./remote_reality ${OPTIONS}
+	@sudo ./remote_reality ${OPTIONS}
 
 run-remote:
 	@ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_REPO} && sudo ./remote_reality ${OPTIONS}'

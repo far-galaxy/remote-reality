@@ -13,6 +13,7 @@ type Servo struct {
 }
 
 // Список пинов Raspberry Pi, имеющих поддержку ШИМ
+// TODO: проверять, что не включены 12 и 18 или 13 и 19 одновременно
 var supportPWM = map[int]bool{
 	12: true,
 	13: true,

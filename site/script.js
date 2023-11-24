@@ -55,5 +55,28 @@ try {
 }
 
 function stop() {
-    fetch('/stop', {method: 'GET',})
+    fetch('/stop', {
+        method: 'GET',
+    })
+}
+
+// Джойстик
+try {
+    console.log(navigator.getGamepads());
+} catch (err) {
+    console.log(err.message)
+}
+
+const rAF = window.mozRequestAnimationFrame || window.requestAnimationFrame;
+
+window.addEventListener('gamepadconnected', function (event) {
+    console.log(event)
+    updateLoop();
+});
+
+
+function updateLoop() {
+    const gamepad = navigator.getGamepads()[0]
+    console.log(gamepad.axes[0], gamepad.axes[1])
+    setTimeout(() => rAF(updateLoop), 100);
 }
