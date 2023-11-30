@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"image"
+	"image/png"
 	"log"
+	"os"
 	"remote_reality/modules/camera"
 	"strings"
 	"time"
@@ -20,23 +23,48 @@ func main() {
 	frameSize := flag.String("s", "", "frame size to use, default largest one")
 	addr := flag.String("l", ":8000", "addr to listien")
 	fps := flag.Bool("p", false, "print fps info")
+	noCam := flag.Bool("n", false, "disable camera")
 	flag.Parse()
 
-	var dev camera.Device
-	// Запуск стрима
-	if err := camera.BeginStream(dev, device, videoFormat, info, frameSize); err != nil {
-		log.Fatal(err)
-	}
-
 	var (
-		li   chan *bytes.Buffer = make(chan *bytes.Buffer)
-		fi   chan []byte        = make(chan []byte)
-		back chan struct{}      = make(chan struct{})
+		imageStream chan *bytes.Buffer = make(chan *bytes.Buffer) // Картинки, что отправятся в стрим
+		camStream   chan []byte        = make(chan []byte)        // Сырые данные с камеры
+		back        chan struct{}      = make(chan struct{})
 	)
-	go camera.EncodeToImage(dev, back, fi, li)
-	go InitServer(*addr, li)
+	go InitServer(*addr, imageStream)
 	port := strings.Split(*addr, ":")[1]
 	fmt.Printf("Stream started at %s:%s\n", GetLocalIP(), port)
+	if *noCam {
+		blank, err := os.Open("blank.png")
+		if err != nil {
+			log.Fatal("error when opening blank", err)
+		}
+		defer blank.Close()
+
+		img, _, err := image.Decode(blank)
+		if err != nil {
+			log.Fatal("error when decoding", err)
+		}
+		var buf bytes.Buffer
+		if err := png.Encode(&buf, img); err != nil {
+			log.Fatal("error when encoding ", err)
+		}
+		imageStream <- &buf
+		for {
+			if len(imageStream) == 0 {
+				imageStream <- &buf
+			}
+		}
+	}
+
+	var dev camera.Device
+	// Подготовка камеры
+	if err := camera.PrepareCamera(&dev, device, videoFormat, info, frameSize); err != nil {
+		log.Fatal(err)
+	}
+	defer dev.Cam.Close()
+
+	go camera.EncodeToImage(dev, back, camStream, imageStream)
 
 	timeout := uint32(5) // 5-секундный таймаут
 	start := time.Now()
@@ -71,7 +99,7 @@ func main() {
 			}
 
 			select {
-			case fi <- frame:
+			case camStream <- frame:
 				<-back
 			default:
 			}

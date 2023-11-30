@@ -167,11 +167,10 @@ func CheckSize(szstr *string, supported FrameSizes) (*webcam.FrameSize, error) {
 	return nil, fmt.Errorf("no matching frame size, exiting")
 }
 
-func BeginStream(dev Device, device *string, videoFormat *string, info *bool, frameSize *string) error {
+func PrepareCamera(dev *Device, device *string, videoFormat *string, info *bool, frameSize *string) error {
 	if err := dev.InitCamera(device, videoFormat); err != nil {
 		return err
 	}
-	defer dev.Cam.Close()
 	if *info {
 		dev.PrintSupported()
 		os.Exit(0)
@@ -180,20 +179,26 @@ func BeginStream(dev Device, device *string, videoFormat *string, info *bool, fr
 		return err
 	}
 
+	// TODO: создать пулл клиентов стрима
 	if err := dev.Cam.StartStreaming(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func EncodeToImage(dev Device, back chan struct{}, fi chan []byte, li chan *bytes.Buffer) {
+func EncodeToImage(
+	dev Device,
+	back chan struct{},
+	camStream chan []byte,
+	imageStream chan *bytes.Buffer,
+) {
 
 	var (
 		frame []byte
 		img   image.Image
 	)
 	for {
-		bframe := <-fi
+		bframe := <-camStream
 		// copy frame
 		if len(frame) < len(bframe) {
 			frame = make([]byte, len(bframe))
@@ -232,13 +237,13 @@ func EncodeToImage(dev Device, back chan struct{}, fi chan []byte, li chan *byte
 	FOR:
 		for ; nn < N; nn++ {
 			select {
-			case li <- buf:
+			case imageStream <- buf:
 			default:
 				break FOR
 			}
 		}
 		if nn == 0 {
-			li <- buf
+			imageStream <- buf
 		}
 
 	}

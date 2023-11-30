@@ -12,7 +12,7 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 	var file []byte
 	var err error
 	if r.URL.String() == "/" {
-		file, err = os.ReadFile("index.html")
+		file, err = os.ReadFile("./modules/site/index.html")
 		if err != nil {
 			http.Error(w, "Error reading index", http.StatusInternalServerError)
 			return
@@ -20,7 +20,7 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 
 	} else if r.URL.String() == "/script.js" {
-		file, err = os.ReadFile("script.js")
+		file, err = os.ReadFile("./modules/site/script.js")
 		if err != nil {
 			http.Error(w, "Error reading script", http.StatusInternalServerError)
 			return
