@@ -6,43 +6,26 @@ import (
 	"fmt"
 	"log"
 	"remote_reality/modules/camera"
-	"remote_reality/modules/servo"
 	"strings"
 	"time"
 
 	"github.com/blackjack/webcam"
-	"github.com/stianeikeland/go-rpio/v4"
 )
-
-var xServo, yServo servo.Servo
-var isRaspberry = true
-var dev camera.Device
 
 func main() {
 	// Немножко CLI
 	device := flag.String("d", "/dev/video0", "video device to use")
 	info := flag.Bool("i", false, "check available formats and frame sizes")
-	tls := flag.Bool("t", false, "use tls")
 	videoFormat := flag.String("f", "", "video format to use, default first supported")
 	frameSize := flag.String("s", "", "frame size to use, default largest one")
 	addr := flag.String("l", ":8000", "addr to listien")
 	fps := flag.Bool("p", false, "print fps info")
 	flag.Parse()
 
-	dev.InitCamera(device, videoFormat)
-	defer dev.Cam.Close()
-	if *info {
-		dev.PrintSupported()
-		return
-	}
-	if err := dev.CheckSizeAndRequest(frameSize); err != nil {
-		log.Fatal(err)
-	}
-
+	var dev camera.Device
 	// Запуск стрима
-	if err := dev.Cam.StartStreaming(); err != nil {
-		log.Println(err)
-		return
+	if err := camera.BeginStream(dev, device, videoFormat, info, frameSize); err != nil {
+		log.Fatal(err)
 	}
 
 	var (
@@ -50,14 +33,10 @@ func main() {
 		fi   chan []byte        = make(chan []byte)
 		back chan struct{}      = make(chan struct{})
 	)
-	go camera.EncodeToImage(dev.Cam, back, fi, li, dev.Width, dev.Height, dev.CurFormat)
-	go InitServer(*addr, *tls, li)
+	go camera.EncodeToImage(dev, back, fi, li)
+	go InitServer(*addr, li)
 	port := strings.Split(*addr, ":")[1]
 	fmt.Printf("Stream started at %s:%s\n", GetLocalIP(), port)
-
-	// Запуск сервоприводов
-	ServoHeadInit()
-	defer rpio.Close()
 
 	timeout := uint32(5) // 5-секундный таймаут
 	start := time.Now()
@@ -97,23 +76,5 @@ func main() {
 			default:
 			}
 		}
-	}
-}
-
-func ServoHeadInit() {
-	if err := rpio.Open(); err != nil {
-		if err.Error() == "open /dev/gpiomem: no such file or directory" {
-			isRaspberry = false
-			fmt.Println("It is hot Raspberry, Servo disabled")
-		} else {
-			isRaspberry = false
-			fmt.Println(err)
-		}
-	}
-
-	if isRaspberry {
-		xServo.Init(18)
-		yServo.Init(19)
-		fmt.Println("It is Raspberry, Servo ready")
 	}
 }

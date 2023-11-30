@@ -155,9 +155,9 @@ func CheckSize(szstr *string, supported FrameSizes) (*webcam.FrameSize, error) {
 
 		return size, nil
 	} else {
-		for _, f := range supported {
+		for i, f := range supported {
 			if *szstr == f.GetString() {
-				size = &f
+				size = &supported[i]
 
 				return size, nil
 			}
@@ -167,7 +167,26 @@ func CheckSize(szstr *string, supported FrameSizes) (*webcam.FrameSize, error) {
 	return nil, fmt.Errorf("no matching frame size, exiting")
 }
 
-func EncodeToImage(wc *webcam.Webcam, back chan struct{}, fi chan []byte, li chan *bytes.Buffer, w, h uint32, format webcam.PixelFormat) {
+func BeginStream(dev Device, device *string, videoFormat *string, info *bool, frameSize *string) error {
+	if err := dev.InitCamera(device, videoFormat); err != nil {
+		return err
+	}
+	defer dev.Cam.Close()
+	if *info {
+		dev.PrintSupported()
+		os.Exit(0)
+	}
+	if err := dev.CheckSizeAndRequest(frameSize); err != nil {
+		return err
+	}
+
+	if err := dev.Cam.StartStreaming(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func EncodeToImage(dev Device, back chan struct{}, fi chan []byte, li chan *bytes.Buffer) {
 
 	var (
 		frame []byte
@@ -182,9 +201,12 @@ func EncodeToImage(wc *webcam.Webcam, back chan struct{}, fi chan []byte, li cha
 		copy(frame, bframe)
 		back <- struct{}{}
 
-		switch format {
+		switch dev.CurFormat {
 		case V4L2_PIX_FMT_YUYV:
-			yuyv := image.NewYCbCr(image.Rect(0, 0, int(w), int(h)), image.YCbCrSubsampleRatio422)
+			yuyv := image.NewYCbCr(
+				image.Rect(0, 0, int(dev.Width), int(dev.Height)),
+				image.YCbCrSubsampleRatio422,
+			)
 			for i := range yuyv.Cb {
 				ii := i * 4
 				yuyv.Y[i*2] = frame[ii]
