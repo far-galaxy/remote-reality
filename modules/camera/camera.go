@@ -191,6 +191,7 @@ func EncodeToImage(
 	back chan struct{},
 	camStream chan []byte,
 	imageStream chan *bytes.Buffer,
+	quality int,
 ) {
 
 	var (
@@ -226,7 +227,7 @@ func EncodeToImage(
 		}
 		//convert to jpeg
 		buf := &bytes.Buffer{}
-		if err := jpeg.Encode(buf, img, nil); err != nil {
+		if err := jpeg.Encode(buf, img, &jpeg.Options{Quality: quality}); err != nil {
 			log.Fatal(err)
 			return
 		}

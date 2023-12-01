@@ -35,6 +35,7 @@ func InitServer(addr string, li chan *bytes.Buffer) {
 	router.HandleFunc("/", site.HomePage)
 	router.HandleFunc("/stop", site.Stop)
 	router.HandleFunc("/script.js", site.HomePage)
+	router.HandleFunc("/blank.png", site.HomePage)
 	router.HandleFunc("/video", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("connect from", r.RemoteAddr, r.URL)
 

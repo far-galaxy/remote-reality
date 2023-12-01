@@ -24,6 +24,7 @@ func main() {
 	addr := flag.String("l", ":8000", "addr to listien")
 	fps := flag.Bool("p", false, "print fps info")
 	noCam := flag.Bool("n", false, "disable camera")
+	quality := flag.Int("q", 90, "quality of jpeg (0-100)")
 	flag.Parse()
 
 	var (
@@ -35,7 +36,7 @@ func main() {
 	port := strings.Split(*addr, ":")[1]
 	fmt.Printf("Stream started at %s:%s\n", GetLocalIP(), port)
 	if *noCam {
-		blank, err := os.Open("blank.png")
+		blank, err := os.Open("./modules/site/blank.png")
 		if err != nil {
 			log.Fatal("error when opening blank", err)
 		}
@@ -64,7 +65,7 @@ func main() {
 	}
 	defer dev.Cam.Close()
 
-	go camera.EncodeToImage(dev, back, camStream, imageStream)
+	go camera.EncodeToImage(dev, back, camStream, imageStream, *quality)
 
 	timeout := uint32(5) // 5-секундный таймаут
 	start := time.Now()

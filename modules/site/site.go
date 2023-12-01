@@ -11,6 +11,7 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 	log.Println("connect from", r.RemoteAddr, r.URL)
 	var file []byte
 	var err error
+	// TODO: оптимизировать
 	if r.URL.String() == "/" {
 		file, err = os.ReadFile("./modules/site/index.html")
 		if err != nil {
@@ -26,7 +27,13 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.Header().Set("Content-Type", "text/javascript")
-
+	} else if r.URL.String() == "/blank.png" {
+		file, err = os.ReadFile("./modules/site/blank.png")
+		if err != nil {
+			http.Error(w, "Error reading blank", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "image/png")
 	}
 	if _, err := w.Write(file); err != nil {
 		log.Println("error:", err)

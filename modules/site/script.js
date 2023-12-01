@@ -1,3 +1,20 @@
+function setIP() {
+    ip = document.querySelector("#cam-ip").value;
+    url = ip+"/video"
+    document.querySelector("img").src = url;   
+    // TODO: как-то коряво работает обработка ошибки
+    //fetch(url).catch(err => imgError(err));
+    //document.querySelector("img").onerror = imgError();
+}
+
+function imgError() {
+    errLabel = document.createElement("div");
+    errLabel.setAttribute("class", "alert alert-danger");
+    errLabel.setAttribute("role", "alert");
+    errLabel.innerHTML = "Видеопоток не найден. Может, вы ошиблись в ссылке?"
+    document.querySelector("#messages").appendChild(errLabel)
+};
+
 var start = Date.now();
 const timeout = 0; // Временной интервал между снятиями показаний
 
